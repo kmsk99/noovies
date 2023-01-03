@@ -1,20 +1,25 @@
+import React, { useState } from "react";
+import * as Font from "expo-font";
+import { Image, useColorScheme } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Asset } from "expo-asset";
 import { NavigationContainer } from "@react-navigation/native";
-import React, { useCallback, useEffect, useState } from "react";
-import { Text, View, Image, useColorScheme } from "react-native";
-import * as SplashScreen from "expo-splash-screen";
-import * as Font from "expo-font";
-import { ThemeProvider } from "styled-components";
-import { darkTheme, lightTheme } from "./styled";
-import Root from "./navigation/Root";
 import { QueryClient, QueryClientProvider } from "react-query";
+import Root from "./navigation/Root";
+import { ThemeProvider } from "styled-components/native";
+import { darkTheme, lightTheme } from "./styled";
 
 const queryClient = new QueryClient();
 
-const loadFonts = (fonts) => fonts.map((font) => Font.loadAsync(font));
+const loadFonts = (
+  fonts:
+    | string[]
+    | {
+        [fontFamily: string]: Font.FontSource;
+      }[]
+) => fonts.map((font) => Font.loadAsync(font));
 
-const loadImages = (images) =>
+const loadImages = (images: string[] | number[] | string[][] | number[][]) =>
   images.map((image) => {
     if (typeof image === "string") {
       return Image.prefetch(image);
@@ -24,24 +29,13 @@ const loadImages = (images) =>
   });
 
 export default function App() {
+  const [ready, setReady] = useState(false);
+  const onFinish = () => setReady(true);
   const startLoading = async () => {
     const fonts = loadFonts([Ionicons.font]);
     await Promise.all([...fonts]);
   };
   const isDark = useColorScheme() === "dark";
-
-  useEffect(() => {
-    async function prepare() {
-      try {
-        await startLoading();
-      } catch (e) {
-        console.warn(e);
-      }
-    }
-
-    prepare();
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={isDark ? darkTheme : lightTheme}>
